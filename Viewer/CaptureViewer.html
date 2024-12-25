@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DDV SampleCode - CaptureViewer</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dynamsoft-document-viewer@2.1.0/dist/ddv.css">
+</head>
+
+<style>
+    html, body {
+        width: 100%;
+        height: 100%;
+    }
+
+    #container {
+        width: 1200px;
+        height: 800px;
+    }
+
+    button {
+        height: 28px;
+        font-size: 14px;
+    }
+</style>
+
+<body>
+    <div style="margin: 10px 0px;">
+        <div>
+            <span>CameraList:</span>
+            <select id="cameraList"></select>
+            <button onclick="changeCamera()">selectCamera</button>
+        </div>
+        <div style="margin-top: 10px;">
+            <button onclick="play()">play</button>
+            <button onclick="stop()">stop</button>
+            <button onclick="capture()">capture</button>
+            <a target="_blank" id="imageUrl"></a>
+        </div>
+    </div>
+    <div id="container"></div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/dynamsoft-document-viewer@2.1.0/dist/ddv.js"></script>
+<script>
+    const DDV = Dynamsoft.DDV;
+    let captureViewer;
+
+    // Writing style of 'Top-level await' to be compatible with older versions of browsers
+    (async () => {
+        DDV.Core.engineResourcePath =
+        'https://cdn.jsdelivr.net/npm/dynamsoft-document-viewer@2.1.0/dist/engine/';
+        DDV.Core.license =
+        't0109uQAAAFPIwwS6HrlLdjrSo1MpI9a/CNxfB7kfG1U4VFD18a62i67h8C+4C9NOwE7sG1QllS1RuH1PH5PYVcXWkWkYQFewjnkxdSPeVAqsIihY4RVOgFCSb/fbtJDqztG+4Z8MdvJwTOkA9m0muw==';
+        Dynamsoft.DDV.Core.loadWasm();
+
+        // Initialize DDV
+        await Dynamsoft.DDV.Core.init();
+        
+        // Create an edit viewer
+        captureViewer = new Dynamsoft.DDV.CaptureViewer({
+            container: "container",
+        });
+        captureViewer.play();
+        getCameraList();
+    })();
+
+    // Get camera list（https://www.dynamsoft.com/document-viewer/docs/api/class/captureviewer.html#getallcameras）
+    function getCameraList() {
+        const select = document.getElementById("cameraList");
+
+        const cameraList = captureViewer.getAllCameras().then((list) => {
+            list.forEach((camera) => {
+                const option = document.createElement("option");
+                option.value = camera.deviceId;
+                option.text = camera.label;
+
+                select.appendChild(option);
+            })
+        })
+    }
+
+    // Sect Camera (https://www.dynamsoft.com/document-viewer/docs/api/class/captureviewer.html#selectcamera)
+    function changeCamera() {
+        const select = document.getElementById("cameraList");
+        const cameraId = select.value;
+
+        captureViewer.selectCamera(cameraId);
+    }
+
+    // Play Video (https://www.dynamsoft.com/document-viewer/docs/api/class/captureviewer.html#play)
+    function play() {
+        captureViewer.play();
+    }
+
+    // Stop Video (https://www.dynamsoft.com/document-viewer/docs/api/class/captureviewer.html#stop)
+    function stop() {
+        captureViewer.stop();
+    }
+
+    // Get Capture Image (https://www.dynamsoft.com/document-viewer/docs/api/class/captureviewer.html#capture)
+    async function capture() {
+        const capturedPage = await captureViewer.capture();
+        const url = URL.createObjectURL(capturedPage)
+        document.getElementById("imageUrl").innerText = url;
+        document.getElementById("imageUrl").href = url;
+    }
+</script>
+</html>
