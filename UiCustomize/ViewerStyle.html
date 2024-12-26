@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DDV SampleCode - ViewerStyle</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dynamsoft-document-viewer@2.1.0/dist/ddv.css">
+</head>
+
+<style>
+    html, body, #container {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+    }
+</style>
+
+<body>
+    <div id="container"></div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/dynamsoft-document-viewer@2.1.0/dist/ddv.js"></script>
+<script>
+    const DDV = Dynamsoft.DDV;
+    // Writing style of 'Top-level await' to be compatible with older versions of browsers
+    (async () => {
+        DDV.Core.engineResourcePath =
+        'https://cdn.jsdelivr.net/npm/dynamsoft-document-viewer@2.1.0/dist/engine/';
+        DDV.Core.license =
+        't0109uQAAAFPIwwS6HrlLdjrSo1MpI9a/CNxfB7kfG1U4VFD18a62i67h8C+4C9NOwE7sG1QllS1RuH1PH5PYVcXWkWkYQFewjnkxdSPeVAqsIihY4RVOgFCSb/fbtJDqztG+4Z8MdvJwTOkA9m0muw==';
+        Dynamsoft.DDV.Core.loadWasm();
+
+        // Initialize DDV
+        await Dynamsoft.DDV.Core.init();
+
+        // Configure image filter feature which is in edit viewer
+        Dynamsoft.DDV.setProcessingHandler("imageFilter", new Dynamsoft.DDV.ImageFilter());
+        
+        // You can set the style when you create the Viewer
+        // (https://www.dynamsoft.com/document-viewer/docs/api/interface/editviewerconstructoroptions.html)
+        const editViewer = new Dynamsoft.DDV.EditViewer({
+            container: "container",
+            uiConfig: DDV.getDefaultUiConfig('editViewer', {
+                includeAnnotationSet: true,
+            }),
+            viewerConfig:{
+                canvasStyle:{
+                    background:'#e2e1de'
+                }
+            },
+            thumbnailConfig:{
+                visibility:"visible",
+                pageStyle:{
+                    border: '2px solid #144dfe', 
+                    background: 'white' 
+                }
+            }
+        });
+
+        // Or update the style dynamically after it is created
+        // (https://www.dynamsoft.com/document-viewer/docs/api/class/editviewer.html#updatestyle)
+        editViewer.updateStyle("pageStyle",{
+            border: '2px solid #144dfe'
+        });
+
+        editViewer.updateStyle("quadSelectionStyle",{
+                border: '2px solid #144dfe',
+                background: 'rgba(255,255,255,0)',
+                ctrlBorderRadius: '50%',
+                ctrlBackground: 'white',
+                ctrlBorder: '1px solid #144dfe',
+                ctrlWidth: '15px',
+                ctrlHeight: '15px',
+        });
+
+        editViewer.thumbnail.updateStyle("selectedPageStyle",{
+            border: '2px solid #002390',
+            background: 'white' 
+        });
+
+        editViewer.thumbnail.updateStyle("currentPageStyle",{
+            border: '4px solid #144dfe'
+        });
+
+        editViewer.thumbnail.updateStyle("hoveredPageStyle",{
+            border: '2px solid #002390',
+            background: 'white'
+        });
+
+        editViewer.thumbnail.updateStyle("placeholderStyle",{
+            border: '2px solid rgba(136,136,136,0.2)',
+            background: '#002390',
+        });
+
+        editViewer.thumbnail.updateStyle('checkboxStyle', {
+            width: '16px',
+            height: '16px',
+            background: '#fff',
+            border: '2px solid #144dfe',
+            borderRadius: '0px',
+            left: '2px',
+            top: '2px',
+            checkMarkColor: '#144dfe',
+            checkMarkLineWidth: '2px',
+            translateX: '0px',
+            translateY: '0px',
+        });
+
+        editViewer.thumbnail.updateStyle('pageNumberStyleA', {
+            onPage: false,
+            width: '32px',
+            height: '24px',
+            background: 'rgba(255,255,255,1)',
+            border: '1px solid #144dfe',
+            borderRadius: '0px',
+            color: '#144dfe',
+            fontSize: '14px',
+            fontFamily: 'Oswald-Regular',
+            left: '50%',
+            top: '',
+            right: '',
+            bottom: '3px',
+            translateX: '-50%',
+            translateY: '0px',
+        });
+    })();
+</script>
+</html>

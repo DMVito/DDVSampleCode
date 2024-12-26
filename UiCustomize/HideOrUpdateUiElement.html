@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DDV SampleCode - Hide/UpdateUIElement</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dynamsoft-document-viewer@2.1.0/dist/ddv.css">
+</head>
+
+<style>
+    html, body {
+        width: 100%;
+        height: 100%;
+    }
+
+    #container {
+        width: 1200px;
+        height: 800px;
+    }
+
+    button {
+        height: 28px;
+        font-size: 14px;
+    }
+
+    .custom-header {
+        height: 48px;
+        flex-shrink: 0;
+        justify-content: center;
+    }
+</style>
+
+<body>
+    <div style="margin: 10px 0px;">
+        <button onclick="HidePrintButton()">HidePrintButton</button>
+        <button onclick="updateUiConfig()">UpdateUiConfig</button>
+    </div>
+    <div id="container"></div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/dynamsoft-document-viewer@2.1.0/dist/ddv.js"></script>
+<script>
+    const DDV = Dynamsoft.DDV;
+    let editViewer;
+
+    // Writing style of 'Top-level await' to be compatible with older versions of browsers
+    (async () => {
+        DDV.Core.engineResourcePath =
+        'https://cdn.jsdelivr.net/npm/dynamsoft-document-viewer@2.1.0/dist/engine/';
+        DDV.Core.license =
+        't0109uQAAAFPIwwS6HrlLdjrSo1MpI9a/CNxfB7kfG1U4VFD18a62i67h8C+4C9NOwE7sG1QllS1RuH1PH5PYVcXWkWkYQFewjnkxdSPeVAqsIihY4RVOgFCSb/fbtJDqztG+4Z8MdvJwTOkA9m0muw==';
+        DDV.Core.loadWasm();
+
+        // Initialize DDV
+        await DDV.Core.init();
+        
+        // Create an edit viewer
+        // (https://www.dynamsoft.com/document-viewer/docs/ui/uiconfig.html)
+        editViewer = new DDV.EditViewer({
+            container: "container",
+        });
+    })();
+
+    //If you just want to simply hide a button or two on the default UiConfig
+    function HidePrintButton() {
+        // Default Ui Config (https://www.dynamsoft.com/document-viewer/docs/ui/default_ui.html#edit-viewer)
+        const uiConfig =  DDV.getDefaultUiConfig('editViewer')
+        // Example desktop:
+        const header = uiConfig.children[0];
+        const headerRightBar = header.children[1];
+        // The print button is in the fourth position
+        headerRightBar.children.splice(3,1);
+
+        editViewer.updateUiConfig(uiConfig)
+    }
+
+    // Or you can update your custom uiConfig
+    function updateUiConfig() {
+        // (https://www.dynamsoft.com/document-viewer/docs/ui/customize/index.html)
+        const customUiConfig = {
+            type:DDV.Elements.Layout,
+            flexDirection:"column",
+            children:[
+                {
+                    type:DDV.Elements.Layout,
+                    className:"custom-header",
+                    children:[
+                        DDV.Elements.Crop,
+                        DDV.Elements.RotateRight,
+                        {
+                            type:DDV.Elements.SeparatorLine,
+                            style:{
+                                margin:"0 5px"
+                            }
+                        },
+                        {
+                            type:DDV.Elements.Pagination,
+                            style:{
+                                background:"#1e1c19",
+                                width:'170px'
+                            },
+                        },
+                        {
+                            type:DDV.Elements.SeparatorLine,
+                            style:{
+                                margin:"0 5px"
+                            }
+                        },
+                        DDV.Elements.DeleteCurrent,
+                        DDV.Elements.Load,
+                    ]
+                },
+                DDV.Elements.MainView
+            ]
+        }
+        
+        // (https://www.dynamsoft.com/document-viewer/docs/api/class/editviewer.html#updateuiconfig)
+        editViewer.updateUiConfig(customUiConfig);
+    }
+</script>
+</html>

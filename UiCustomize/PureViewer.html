@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DDV SampleCode - PureViewer</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dynamsoft-document-viewer@2.1.0/dist/ddv.css">
+</head>
+
+<style>
+    html, body {
+        width: 100%;
+        height: 100%;
+    }
+
+    #container {
+        width: 1200px;
+        height: 800px;
+    }
+
+    button {
+        height: 28px;
+        font-size: 14px;
+    }
+</style>
+
+<body>
+    <div style="margin: 10px 0px;">
+        <input 
+            onchange="loadSource(event)"
+            type="file"
+            accept="image/png,image/jpeg,image/bmp"
+            multiple="true"
+        >
+    </div>
+    <div id="container"></div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/dynamsoft-document-viewer@2.1.0/dist/ddv.js"></script>
+<script>
+    const DDV = Dynamsoft.DDV;
+    let editViewer;
+
+    // Writing style of 'Top-level await' to be compatible with older versions of browsers
+    (async () => {
+        DDV.Core.engineResourcePath =
+        'https://cdn.jsdelivr.net/npm/dynamsoft-document-viewer@2.1.0/dist/engine/';
+        DDV.Core.license =
+        't0109uQAAAFPIwwS6HrlLdjrSo1MpI9a/CNxfB7kfG1U4VFD18a62i67h8C+4C9NOwE7sG1QllS1RuH1PH5PYVcXWkWkYQFewjnkxdSPeVAqsIihY4RVOgFCSb/fbtJDqztG+4Z8MdvJwTOkA9m0muw==';
+        Dynamsoft.DDV.Core.loadWasm();
+
+        // Initialize DDV
+        await Dynamsoft.DDV.Core.init();
+        
+        // Create an pure edit viewer
+        // (https://www.dynamsoft.com/document-viewer/docs/ui/uiconfig.html)
+        editViewer = new Dynamsoft.DDV.EditViewer({
+            container: "container",
+            uiConfig:{
+                type: Dynamsoft.DDV.Elements.Layout,
+                children: [
+                    Dynamsoft.DDV.Elements.MainView
+                ],
+            }
+        });
+
+        // Open a document
+        const doc = Dynamsoft.DDV.documentManager.createDocument();
+        editViewer.openDocument(doc);
+    })();
+
+    // load file to viewer (https://www.dynamsoft.com/document-viewer/docs/api/interface/idocument/index.html#loadsource)
+    async function loadSource(e) {
+        const { files } = e.target;
+        const len = files.length;
+        const sourceArray = [];
+        for (let i = 0; i < len; i++) {
+            const blob = new Blob([files[i]], {
+            type: files[i].type,
+            });
+
+            sourceArray.push({
+              fileData: blob,
+              renderOptions: {
+                renderAnnotations: DDV.EnumAnnotationRenderMode.LOAD_ANNOTATIONS,
+              },
+            });
+        }
+
+        editViewer.currentDocument.loadSource(sourceArray);
+
+        e.target.value = null;
+        e.target.files = null;
+    }
+</script>
+</html>

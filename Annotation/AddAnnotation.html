@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DDV SampleCode - AddAnnotation</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dynamsoft-document-viewer@2.1.0/dist/ddv.css">
+</head>
+
+<style>
+    html, body {
+        width: 100%;
+        height: 100%;
+    }
+
+    #container {
+        width: 1200px;
+        height: 800px;
+    }
+
+    button {
+        height: 28px;
+        font-size: 14px;
+    }
+</style>
+
+<body>
+    <div style="margin: 10px 0px;">
+        <input 
+            onchange="loadSource(event)"
+            type="file"
+            accept="image/png,image/jpeg,image/bmp"
+            multiple="true"
+        >
+        <div style="margin: 10px 0px;">
+            <button onclick="createRectangle()">Add Rectangle</button>
+            <button onclick="createEllipse()">Add Ellipse</button>
+            <button onclick="createPolyline()">Add Polyline</button>
+            <button onclick="createPolygon()">Add Polygon</button>
+            <button onclick="createStampIcon()">Add StampIcon</button>
+        </div>
+        <div style="margin: 10px 0px;">
+            <button onclick="createLine()">Add Line</button>
+            <button onclick="createInk()">Add Ink</button>
+            <button onclick="createTextBox()">Add Textbox</button>
+            <button onclick="createTextTypewriter()">Add TextTypewriter</button>
+        </div>
+    </div>
+    <div id="container"></div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/dynamsoft-document-viewer@2.1.0/dist/ddv.js"></script>
+<script>
+    const DDV = Dynamsoft.DDV;
+    let editViewer;
+
+    // Writing style of 'Top-level await' to be compatible with older versions of browsers
+    (async () => {
+        DDV.Core.engineResourcePath =
+        'https://cdn.jsdelivr.net/npm/dynamsoft-document-viewer@2.1.0/dist/engine/';
+        DDV.Core.license =
+        't0109uQAAAFPIwwS6HrlLdjrSo1MpI9a/CNxfB7kfG1U4VFD18a62i67h8C+4C9NOwE7sG1QllS1RuH1PH5PYVcXWkWkYQFewjnkxdSPeVAqsIihY4RVOgFCSb/fbtJDqztG+4Z8MdvJwTOkA9m0muw==';
+        Dynamsoft.DDV.Core.loadWasm();
+
+        // Initialize DDV
+        await Dynamsoft.DDV.Core.init();
+        
+        // Create an edit viewer
+        // (https://www.dynamsoft.com/document-viewer/docs/ui/uiconfig.html)
+        editViewer = new Dynamsoft.DDV.EditViewer({
+            container: "container",
+            uiConfig: DDV.getDefaultUiConfig('editViewer', {
+                includeAnnotationSet: true,
+            }),
+        });
+
+        // Open a document
+        const doc = Dynamsoft.DDV.documentManager.createDocument();
+        editViewer.openDocument(doc);
+    })();
+
+    // load file to viewer (https://www.dynamsoft.com/document-viewer/docs/api/interface/idocument/index.html#loadsource)
+    async function loadSource(e) {
+        const { files } = e.target;
+        const len = files.length;
+        const sourceArray = [];
+        for (let i = 0; i < len; i++) {
+            const blob = new Blob([files[i]], {
+            type: files[i].type,
+            });
+
+            sourceArray.push({
+              fileData: blob,
+              renderOptions: {
+                renderAnnotations: DDV.EnumAnnotationRenderMode.LOAD_ANNOTATIONS,
+              },
+            });
+        }
+
+        editViewer.currentDocument.loadSource(sourceArray);
+
+        e.target.value = null;
+        e.target.files = null;
+    }
+
+
+    // (https://www.dynamsoft.com/document-viewer/docs/api/class/annotationmanager.html#createannotation)
+    function createRectangle() {
+        if(editViewer.currentDocument.pages.length <= 0) return;
+
+        DDV.annotationManager.createAnnotation(editViewer.getCurrentPageUid(),"rectangle",{
+            x:10,
+            y:10,
+            width:100,
+            height:100,
+            borderWidth:1,
+            borderColor:"red",
+            background:"black"
+        })
+    }
+
+    function createEllipse(){
+        if(editViewer.currentDocument.pages.length <= 0) return;
+
+        DDV.annotationManager.createAnnotation(editViewer.getCurrentPageUid(),"ellipse",{
+            x:10,
+            y:10,
+            width:100,
+            height:100,
+            borderWidth:5,
+            borderColor:"rgb(0,0,255)",
+            background:"rgb(0,255,0)"
+        })
+    }
+
+    function createPolyline(){
+        if(editViewer.currentDocument.pages.length <= 0) return;
+
+        DDV.annotationManager.createAnnotation(editViewer.getCurrentPageUid(),"polyline",{
+            points:[
+                {x:10,y:10},
+                {x:110,y:110},
+                {x:60,y:110},
+            ],
+            borderWidth:5,
+            borderColor:"rgb(0,0,255)",
+        })
+    }
+
+    function createPolygon(){
+        if(editViewer.currentDocument.pages.length <= 0) return;
+
+        DDV.annotationManager.createAnnotation(editViewer.getCurrentPageUid(),"polygon",{
+            points:[
+                {x:10,y:10},
+                {x:110,y:110},
+                {x:60,y:110},
+            ],
+            borderWidth:5,
+            borderColor:"rgb(125,0,125)",
+        })
+    }
+
+    function createStampIcon(){
+        if(editViewer.currentDocument.pages.length <= 0) return;
+
+        DDV.annotationManager.createAnnotation(editViewer.getCurrentPageUid(),"stamp",{
+            stamp:DDV.EnumStampIcon.APPROVED,
+            x:10,
+            y:10
+        });
+    }
+
+    function createLine() {
+        if(editViewer.currentDocument.pages.length <= 0) return;
+
+        DDV.annotationManager.createAnnotation(editViewer.getCurrentPageUid(),"line",{
+            startPoint:{x:50,y:50},
+            endPoint:{x:160,y:160},
+            borderWidth:5,
+            borderColor:"rgb(125,125,125)",
+            lineEnding:{
+                start:DDV.EnumLineEnding.CIRCLE,
+                end:DDV.EnumLineEnding.OPEN
+            },
+            background:"rgb(0,255,0)"
+        });
+    }
+
+    function createInk() {
+        if(editViewer.currentDocument.pages.length <= 0) return;
+
+        DDV.annotationManager.createAnnotation(editViewer.getCurrentPageUid(),"ink",{
+            points:[[
+                {x:10,y:10},
+                {x:30,y:40},
+                {x:60,y:60},
+                {x:80,y:40},
+                {x:120,y:10}
+            ]],
+            borderWidth:5,
+            borderColor:"rgb(125,125,125)",
+        });
+    }
+
+    function createTextBox(){
+        if(editViewer.currentDocument.pages.length <= 0) return;
+
+        DDV.annotationManager.createAnnotation(editViewer.getCurrentPageUid(),"textBox",{
+            x:10,
+            y:10,
+            width:150,
+            height:150,
+            background:'white',
+            borderColor:'green',
+            borderWidth:2,
+            textAlign: "left",
+            textContents:[
+                {
+                    content:"Hello ",
+                    fontSize:24,
+                    color:"red",
+                },
+                {
+                    content:"World!",
+                    fontSize:24,
+                    color:"blue",
+                }
+            ]
+        });
+    }
+
+    function createTextTypewriter(){
+        if(editViewer.currentDocument.pages.length <= 0) return;
+
+        DDV.annotationManager.createAnnotation(editViewer.getCurrentPageUid(),"textTypewriter",{
+            x:10,
+            y:10,
+            textContents:[
+                {
+                    content:"Hello ",
+                    fontSize:36,
+                    color:"rgb(175,125,255)",
+                    fontStyle: 'italic',
+                    fontWeight: 'bold',
+                },
+                {
+                    content:"World!",
+                    fontSize:36,
+                    color:"rgb(255,125,255)",
+                }
+            ]
+        });
+    }
+</script>
+</html>
