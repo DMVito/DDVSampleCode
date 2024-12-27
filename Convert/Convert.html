@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DDV SampleCode - Convert</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dynamsoft-document-viewer@2.1.0/dist/ddv.css">
+</head>
+
+<style>
+    #container {
+        width: 1200px;
+        height: 800px;
+    }
+
+    #documentList {
+        width: 1200px;
+    }
+
+    button {
+        height: 28px;
+        font-size: 14px;
+        margin-right: 4px;
+    }
+</style>
+
+<body>
+    <div style="margin: 10px 0px;">
+        <button onclick="saveJpeg()">SaveJpeg</button>
+        <button onclick="savePng()">SavePng</button>
+        <button onclick="savePdf()">SavePdf</button>
+        <button onclick="saveTiff()">SaveTiff</button>
+        <button onclick="print()">Print</button>
+    </div>  
+    <div id="container"></div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/dynamsoft-document-viewer@2.1.0/dist/ddv.js"></script>
+<script>
+    const DDV = Dynamsoft.DDV;
+    let editViewer;
+    
+    // Writing style of 'Top-level await' to be compatible with older versions of browsers
+    (async () => {
+        DDV.Core.engineResourcePath =
+        'https://cdn.jsdelivr.net/npm/dynamsoft-document-viewer@2.1.0/dist/engine/';
+        DDV.Core.license ="";
+        Dynamsoft.DDV.Core.loadWasm();
+
+        // Initialize DDV
+        await Dynamsoft.DDV.Core.init();
+        
+        // Create an edit viewer
+        editViewer = new Dynamsoft.DDV.EditViewer({
+            container: "container",
+            uiConfig: DDV.getDefaultUiConfig('editViewer', {
+                includeAnnotationSet: true,
+            }),
+        });
+    })();
+
+    // (https://www.dynamsoft.com/document-viewer/docs/api/interface/idocument/index.html#savetojpeg)
+    async function saveJpeg() {
+        if(!editViewer.currentDocument?.pages?.length) return;
+
+        // Save the first page as a JPEG file with a JPEG compression quality of 100, and the annotations are saved as part of the JPEG.
+        const settings = {
+            quality: 100,
+            saveAnnotation: true,
+        };
+        const blob = await editViewer.currentDocument.saveToJpeg(editViewer.getCurrentPageIndex(), settings);
+        downLoadBlob(blob, 'ddv-sample.jpeg')
+    }
+
+    // (https://www.dynamsoft.com/document-viewer/docs/api/interface/idocument/index.html#savetopng)
+    async function savePng() {
+        if(!editViewer.currentDocument?.pages?.length) return;
+
+        const settings = {
+            saveAnnotation: true,
+        };
+        const blob = await editViewer.currentDocument.saveToPng(editViewer.getCurrentPageIndex(), settings);
+        downLoadBlob(blob, 'ddv-sample.png')
+    }
+
+
+    // (https://www.dynamsoft.com/document-viewer/docs/api/interface/idocument/index.html#savetopdf)
+    async function savePdf() {
+        if(!editViewer.currentDocument?.pages?.length) return;
+
+        // (https://www.dynamsoft.com/document-viewer/docs/api/interface/idocument/savepdfsettings.html)
+        const settings = {
+            author: "Dynamsoft",
+            //compression: "pdf/jpeg",
+            //pageType: "page/a4",
+            creator: "DDV",
+            keyWords: "samplepdf",
+            producer: "Dynamsoft Document Viewer",
+            subject: "SamplePdf",
+            title: "SamplePdf",
+            version: "1.5",
+            quality: 100,
+            saveAnnotation: "annotation",
+            imageScaleFactor: 1,
+        };
+        const blob = await editViewer.currentDocument.saveToPdf(settings);
+        downLoadBlob(blob, 'ddv-sample.pdf')
+    }
+
+    // (https://www.dynamsoft.com/document-viewer/docs/api/interface/idocument/index.html#savetotiff)
+    async function saveTiff() {
+        if(!editViewer.currentDocument?.pages?.length) return;
+
+        // (https://www.dynamsoft.com/document-viewer/docs/api/interface/idocument/savetiffsettings.html)
+        const customTag = {
+            id: 700,
+            content: "Created By Dynamsoft",
+            contentIsBase64: false,
+        }
+
+        // Set SaveTiffSettings
+        const tiffSettings = {
+            customTag: [customTag],
+            compression: "tiff/auto",
+        }
+
+        // Save the whole document to a multi-page TIFF file with the specified tiff settings.
+        const blob = await editViewer.currentDocument.saveToTiff(tiffSettings);
+        downLoadBlob(blob, 'ddv-sample.tiff')
+    }
+
+    // (https://www.dynamsoft.com/document-viewer/docs/api/interface/idocument/index.html#print)
+    function print()
+    {
+        // editViewer.currentDocument.print([1,2], {printAnnotation: true});
+        editViewer.currentDocument.print({
+            printAnnotation: true
+        });
+    }
+
+    function downLoadBlob(blob, filename) {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    }
+</script>
+</html>

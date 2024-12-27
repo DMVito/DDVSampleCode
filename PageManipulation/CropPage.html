@@ -4,25 +4,39 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DDV SampleCode - EditViewer</title>
+    <title>DDV SampleCode - CropPage</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dynamsoft-document-viewer@2.1.0/dist/ddv.css">
 </head>
 
 <style>
-    html, body, #container {
-        margin: 0;
-        padding: 0;
-        width: 100%;
-        height: 100%;
+    #container {
+        width: 1200px;
+        height: 800px;
+    }
+
+    #documentList {
+        width: 1200px;
+    }
+
+    button {
+        height: 28px;
+        font-size: 14px;
+        margin-right: 4px;
     }
 </style>
 
 <body>
+    <div style="margin: 10px 0px;">
+        <button onclick="cropCurrentPage()">CropCurrentPage</button>
+        <button onclick="manualCrop()">Manual Crop</button>
+    </div>  
     <div id="container"></div>
 </body>
 <script src="https://cdn.jsdelivr.net/npm/dynamsoft-document-viewer@2.1.0/dist/ddv.js"></script>
 <script>
     const DDV = Dynamsoft.DDV;
+    let editViewer;
+    
     // Writing style of 'Top-level await' to be compatible with older versions of browsers
     (async () => {
         DDV.Core.engineResourcePath =
@@ -32,30 +46,32 @@
 
         // Initialize DDV
         await Dynamsoft.DDV.Core.init();
-
-        // Configure image filter feature which is in edit viewer
-        Dynamsoft.DDV.setProcessingHandler("imageFilter", new Dynamsoft.DDV.ImageFilter());
         
         // Create an edit viewer
-        const editViewer = new Dynamsoft.DDV.EditViewer({
+        editViewer = new Dynamsoft.DDV.EditViewer({
             container: "container",
             uiConfig: DDV.getDefaultUiConfig('editViewer', {
                 includeAnnotationSet: true,
             }),
         });
-
-        // Show Thumbnail (https://www.dynamsoft.com/document-viewer/docs/api/class/editviewer.html#show)
-        editViewer.thumbnail.show(); // or editViewer.thumbnail.hide();
-
-        // Set Fit Mode (https://www.dynamsoft.com/document-viewer/docs/api/class/editviewer.html#fitmode)
-        editViewer.fitMode = 'window'; // "window" | "width" | "height" | "actualSize"
-
-        // Set Display Mode (https://www.dynamsoft.com/document-viewer/docs/api/class/editviewer.html#displaymode)
-        editViewer.displayMode = 'continuous'; // "single" | "continuous"
-        editViewer.setParallelScrollCount(3);
-
-        // Set Tool Mode (https://www.dynamsoft.com/document-viewer/docs/api/class/editviewer.html#toolmode)
-        editViewer.toolMode = 'pan'; // "pan" | "crop" | "annotation";
     })();
+
+    // (https://www.dynamsoft.com/document-viewer/docs/api/class/editviewer.html#crop)
+    function cropCurrentPage() {
+        if(!editViewer.currentDocument?.pages?.length) return;
+
+        const rect = {
+            top:0,
+            left:0,
+            width:50,
+            height:50,
+        }
+
+        editViewer.crop(rect, [editViewer.getCurrentPageIndex()]);
+    }
+
+    function manualCrop() {
+        editViewer.toolMode = "crop";
+    }
 </script>
 </html>

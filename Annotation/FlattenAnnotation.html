@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DDV SampleCode - FlattenAnnotation</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dynamsoft-document-viewer@2.1.0/dist/ddv.css">
+</head>
+
+<style>
+    #container {
+        width: 1200px;
+        height: 800px;
+    }
+
+    button {
+        height: 28px;
+        font-size: 14px;
+    }
+</style>
+
+<body>
+    <div style="margin: 10px 0px;">
+        <button onclick="createFlattenedText()">Create A Flattened Text</button>
+        <button onclick="flattenAllAnnotation()">FlattenAllAnnotation</button>
+    </div>
+    <div id="container"></div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/dynamsoft-document-viewer@2.1.0/dist/ddv.js"></script>
+<script>
+    const DDV = Dynamsoft.DDV;
+    let editViewer;
+
+    // Writing style of 'Top-level await' to be compatible with older versions of browsers
+    (async () => {
+        DDV.Core.engineResourcePath =
+        'https://cdn.jsdelivr.net/npm/dynamsoft-document-viewer@2.1.0/dist/engine/';
+        DDV.Core.license ="";
+        Dynamsoft.DDV.Core.loadWasm();
+
+        // Initialize DDV
+        await Dynamsoft.DDV.Core.init();
+        
+        // Create an edit viewer
+        editViewer = new Dynamsoft.DDV.EditViewer({
+            container: "container",
+            uiConfig: DDV.getDefaultUiConfig('editViewer', {
+                includeAnnotationSet: true,
+            }),
+        });
+    })();
+
+
+    // Flattened annotation cannot be selected and will be merged into the page
+    // (https://www.dynamsoft.com/document-viewer/docs/api/class/annotation/rectangle.html#flattened)
+    function createFlattenedText() {
+        if(editViewer?.currentDocument?.pages.length <= 0) return;
+
+        const textAnnot = DDV.annotationManager.createAnnotation(editViewer.getCurrentPageUid(), 'textTypewriter', {
+            x: 20,
+            y: 20,
+            textContents:[
+                {
+                    content:'Hello World!',
+                    fontSize: 30,
+                    color: 'orange'
+                }
+            ]
+        });
+
+        textAnnot.flattened = true;
+    }
+
+    function flattenAllAnnotation() {
+        if(editViewer?.currentDocument?.pages.length <= 0) return;
+
+        const annotations = DDV.annotationManager.getAnnotationsByPage(
+            editViewer.getCurrentPageUid()
+        );
+
+        annotations.forEach((annotation) => {
+            annotation.flattened = true // if you want unFlattened, you can set it to false;
+        });
+    }
+
+</script>
+</html>

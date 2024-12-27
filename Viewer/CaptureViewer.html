@@ -9,11 +9,6 @@
 </head>
 
 <style>
-    html, body {
-        width: 100%;
-        height: 100%;
-    }
-
     #container {
         width: 1200px;
         height: 800px;
@@ -30,12 +25,12 @@
         <div>
             <span>CameraList:</span>
             <select id="cameraList"></select>
-            <button onclick="changeCamera()">selectCamera</button>
+            <button onclick="changeCamera()">SelectCamera</button>
         </div>
         <div style="margin-top: 10px;">
-            <button onclick="play()">play</button>
-            <button onclick="stop()">stop</button>
-            <button onclick="capture()">capture</button>
+            <button onclick="play()">Play</button>
+            <button onclick="stop()">Stop</button>
+            <button onclick="capture()">Capture</button>
             <a target="_blank" id="imageUrl"></a>
         </div>
     </div>
@@ -50,7 +45,7 @@
     (async () => {
         DDV.Core.engineResourcePath =
         'https://cdn.jsdelivr.net/npm/dynamsoft-document-viewer@2.1.0/dist/engine/';
-        DDV.Core.license ='';
+        DDV.Core.license ="";
         Dynamsoft.DDV.Core.loadWasm();
 
         // Initialize DDV

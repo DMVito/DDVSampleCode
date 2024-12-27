@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DDV SampleCode - BrowseViewer</title>
+    <title>DDV SampleCode - CreateCustomStamp</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dynamsoft-document-viewer@2.1.0/dist/ddv.css">
 </head>
 
@@ -23,18 +23,20 @@
 <body>
     <div style="margin: 10px 0px;">
         <input 
-            onchange="loadSource(event)"
+            id="imageLoader"
+            style="display: none;"
+            onchange="addImageStamp(event)"
             type="file"
             accept="image/png,image/jpeg,image/bmp"
-            multiple="true"
         >
+        <button onclick="openImageLoader()">Add Image Stamp</button>
     </div>
     <div id="container"></div>
 </body>
 <script src="https://cdn.jsdelivr.net/npm/dynamsoft-document-viewer@2.1.0/dist/ddv.js"></script>
 <script>
     const DDV = Dynamsoft.DDV;
-    let browseViewer;
+    let editViewer;
 
     // Writing style of 'Top-level await' to be compatible with older versions of browsers
     (async () => {
@@ -47,44 +49,30 @@
         await Dynamsoft.DDV.Core.init();
         
         // Create an edit viewer
-        browseViewer = new Dynamsoft.DDV.BrowseViewer({
+        editViewer = new Dynamsoft.DDV.EditViewer({
             container: "container",
         });
 
-        // Open a document
-        const doc = Dynamsoft.DDV.documentManager.createDocument();
-        browseViewer.openDocument(doc);
-
-        // Sets the Viewer's display row and columns
-        // (https://www.dynamsoft.com/document-viewer/docs/api/class/browseviewer.html#setrowandcolumn)
-        browseViewer.setRowAndColumn(4,4);
-
-        // enable multiple selection
-        browseViewer.multiselectMode = true;
     })();
 
-    // load file to viewer (https://www.dynamsoft.com/document-viewer/docs/api/interface/idocument/index.html#loadsource)
-    async function loadSource(e) {
+    function openImageLoader(){
+        document.getElementById("imageLoader").click();
+    }
+
+    function addImageStamp(e) {
+        if(editViewer?.currentDocument?.pages.length <= 0) return;
+
         const { files } = e.target;
-        const len = files.length;
-        const sourceArray = [];
-        for (let i = 0; i < len; i++) {
-            const blob = new Blob([files[i]], {
-            type: files[i].type,
-            });
+        const blob = new Blob([files[0]], {
+            type: files[0].type,
+        });
 
-            sourceArray.push({
-              fileData: blob,
-              renderOptions: {
-                renderAnnotations: DDV.EnumAnnotationRenderMode.LOAD_ANNOTATIONS,
-              },
-            });
-        }
 
-        browseViewer.currentDocument.loadSource(sourceArray);
-
-        e.target.value = null;
-        e.target.files = null;
+        DDV.annotationManager.createAnnotation(editViewer.getCurrentPageUid(), 'stamp', {
+            x: 0,
+            y: 0,
+            stamp: blob,
+        });
     }
 
 </script>

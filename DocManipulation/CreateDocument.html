@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DDV SampleCode - CreateDocument</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dynamsoft-document-viewer@2.1.0/dist/ddv.css">
+</head>
+
+<style>
+    #container {
+        width: 1200px;
+        height: 800px;
+    }
+
+    #documentList {
+        width: 1200px;
+    }
+
+    button {
+        height: 28px;
+        font-size: 14px;
+        margin-right: 4px;
+    }
+</style>
+
+<body>
+    <div style="margin: 10px 0px;">
+        <button onclick="createDocument()">Create Document</button>
+        <button onclick="deleteDocument()">Delete Current Document</button>
+    </div>
+    <div id="documentList"  style="margin-bottom: 10px">
+        
+    </div>
+    <div id="container"></div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/dynamsoft-document-viewer@2.1.0/dist/ddv.js"></script>
+<script>
+    const DDV = Dynamsoft.DDV;
+    let editViewer;
+    let docIndex = 0;
+
+    // Writing style of 'Top-level await' to be compatible with older versions of browsers
+    (async () => {
+        DDV.Core.engineResourcePath =
+        'https://cdn.jsdelivr.net/npm/dynamsoft-document-viewer@2.1.0/dist/engine/';
+        DDV.Core.license ="";
+        Dynamsoft.DDV.Core.loadWasm();
+
+        // Initialize DDV
+        await Dynamsoft.DDV.Core.init();
+        
+        // Create an edit viewer
+        editViewer = new Dynamsoft.DDV.EditViewer({
+            container: "container",
+            uiConfig: DDV.getDefaultUiConfig('editViewer', {
+                includeAnnotationSet: true,
+            }),
+        });
+
+        // (https://www.dynamsoft.com/document-viewer/docs/api/class/documentmanager.html#integrated-events)
+        DDV.documentManager.on("documentCreated",(e) => {
+            const docBtn = document.createElement('button');
+            docBtn.id = e.docUid;
+            docBtn.innerText = 'Doc_' + docIndex;
+            
+            docBtn.addEventListener("click",() => {
+                openDocument(e.docUid);
+            });
+
+            docIndex++;
+            document.getElementById('documentList').appendChild(docBtn);
+        })
+
+        DDV.documentManager.on("documentDeleted",(e) => {
+            document.getElementById(e.docUid).remove();
+        })
+
+        createDocument();
+    })();
+
+    // (https://www.dynamsoft.com/document-viewer/docs/api/class/documentmanager.html#createdocument)
+    function createDocument() {
+        const doc = DDV.documentManager.createDocument({
+            name:'Doc_'+docIndex
+        });
+    }
+
+    // (https://www.dynamsoft.com/document-viewer/docs/api/class/editviewer.html#opendocument)
+    function openDocument(doc) {
+        editViewer.openDocument(doc);
+        // editViewer.openDocument(doc.uid)
+    }
+
+    // (https://www.dynamsoft.com/document-viewer/docs/api/class/documentmanager.html#deletedocuments)
+    function deleteDocument(){
+        if(!editViewer.currentDocument) return;
+
+        const currentDocId = editViewer.currentDocument.uid;
+        DDV.documentManager.deleteDocuments([currentDocId]);
+    }
+</script>
+</html>

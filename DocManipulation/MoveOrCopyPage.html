@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DDV SampleCode - MoveOrCopyPage</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dynamsoft-document-viewer@2.1.0/dist/ddv.css">
+</head>
+
+<style>
+    #container {
+        width: 1200px;
+        height: 800px;
+    }
+
+    #documentList {
+        width: 1200px;
+    }
+
+    button {
+        height: 28px;
+        font-size: 14px;
+        margin-right: 4px;
+    }
+</style>
+
+<body>
+    <div id="documentList"  style="margin-bottom: 10px"></div>
+        
+    <div style="margin: 10px 0px;">
+        <button onclick="movePage()">Move FirstDoc Pages To SecondDoc</button>
+        <button onclick="copyPage()">Copy FirstDoc Pages To SecondDoc</button>
+    </div>  
+    <div id="container"></div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/dynamsoft-document-viewer@2.1.0/dist/ddv.js"></script>
+<script>
+    const DDV = Dynamsoft.DDV;
+    let editViewer;
+    let firstDoc;
+    let secondDoc;
+
+    // Writing style of 'Top-level await' to be compatible with older versions of browsers
+    (async () => {
+        DDV.Core.engineResourcePath =
+        'https://cdn.jsdelivr.net/npm/dynamsoft-document-viewer@2.1.0/dist/engine/';
+        DDV.Core.license ="";
+        Dynamsoft.DDV.Core.loadWasm();
+
+        // Initialize DDV
+        await Dynamsoft.DDV.Core.init();
+        
+        // Create an edit viewer
+        editViewer = new Dynamsoft.DDV.EditViewer({
+            container: "container",
+            uiConfig: DDV.getDefaultUiConfig('editViewer', {
+                includeAnnotationSet: true,
+            }),
+        });
+
+        // (https://www.dynamsoft.com/document-viewer/docs/api/class/documentmanager.html#integrated-events)
+        DDV.documentManager.on("documentCreated",(e) => {
+            const docBtn = document.createElement('button');
+            docBtn.id = e.docUid;
+            docBtn.innerText = e.docName;
+            
+            docBtn.addEventListener("click",() => {
+                editViewer.openDocument(e.docUid);
+            });
+
+            document.getElementById('documentList').appendChild(docBtn);
+        })
+
+        DDV.documentManager.on("documentDeleted",(e) => {
+            document.getElementById(e.docUid).remove();
+        })
+
+        firstDoc = DDV.documentManager.createDocument({
+            name:"FirstDoc"
+        });
+
+        secondDoc = DDV.documentManager.createDocument({
+            name:"SecondDoc"
+        });
+    })();
+
+
+    // (https://www.dynamsoft.com/document-viewer/docs/api/class/documentmanager.html#copypagestodocument)
+    function copyPage() {
+        // (https://www.dynamsoft.com/document-viewer/docs/api/interface/transferoptions.html)
+        const copyOptions = {
+            //sourceIndices: [0],
+            insertBeforeIndex: 0,
+        };
+
+        Dynamsoft.DDV.documentManager.copyPagesToDocument(firstDoc.uid, secondDoc.uid, copyOptions);
+    }
+
+    // (https://www.dynamsoft.com/document-viewer/docs/api/class/documentmanager.html#movepagestodocument)
+    function movePage() {
+        // (https://www.dynamsoft.com/document-viewer/docs/api/interface/transferoptions.html)
+        const moveOptions = {
+            //sourceIndices: [0],
+            insertBeforeIndex: 0,
+        };
+
+        Dynamsoft.DDV.documentManager.movePagesToDocument(firstDoc.uid, secondDoc.uid, moveOptions);
+    }
+</script>
+</html>
