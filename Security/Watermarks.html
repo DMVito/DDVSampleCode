@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DDV SampleCode - Watermarks</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dynamsoft-document-viewer@2.1.0/dist/ddv.css">
+</head>
+
+<style>
+    #container {
+        width: 1200px;
+        height: 800px;
+    }
+
+    #documentList {
+        width: 1200px;
+    }
+
+    button {
+        height: 28px;
+        font-size: 14px;
+        margin-right: 4px;
+    }
+</style>
+
+<body>
+    <div style="margin: 10px 0px;">
+        <button onclick="addWatermarks()">addWatermarks</button>
+        <div style="margin: 10px 0px;">
+            <div style="display: flex; align-items: center;">
+                <span>WaterMarkSize:</span>
+                <input onchange="waterMarkSizeChanged(event)" style="margin-left: 8px;" type="range" min="32" max="120" step="1" value="80">
+            </div>
+            <div style="display: flex; align-items: center;">
+                <span>WaterMarkColor:</span>
+                <input onchange="waterMarkColorChanged(event)" style="margin-left: 8px;"  type="color" value="#000000">
+            </div>
+        </div>
+    </div>  
+    <div id="container"></div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/dynamsoft-document-viewer@2.1.0/dist/ddv.js"></script>
+<script>
+    const DDV = Dynamsoft.DDV;
+    let editViewer;
+    
+    // Writing style of 'Top-level await' to be compatible with older versions of browsers
+    (async () => {
+        DDV.Core.engineResourcePath =
+        'https://cdn.jsdelivr.net/npm/dynamsoft-document-viewer@2.1.0/dist/engine/';
+        DDV.Core.license = "";
+        Dynamsoft.DDV.Core.loadWasm();
+
+        // Initialize DDV
+        await Dynamsoft.DDV.Core.init();
+        
+        // Create an edit viewer
+        editViewer = new Dynamsoft.DDV.EditViewer({
+            container: "container",
+            uiConfig: DDV.getDefaultUiConfig('editViewer', {
+                includeAnnotationSet: true,
+            }),
+        });
+    })();
+
+    // (https://www.dynamsoft.com/document-viewer/docs/api/class/annotationmanager.html#createannotation)
+    let waterMarkSize = 80;
+    let waterMarkColor = "#000000";
+    const waterMarkText  = "Hello World!";
+    const opacity = 0.5;
+    const annots = [];
+
+    async function addWatermarks() {
+        annots.length = 0;
+        const pages = editViewer.currentDocument.pages;
+
+        pages.forEach((uid) => {
+            editViewer.currentDocument.getPageData(uid).then((data) => {
+                const { left ,top, width, height } = data.cropBox;
+
+                const marks = DDV.annotationManager.createAnnotation(uid, 'textBox', {
+                    x: left + width / 2 - 500,
+                    y:  top + height / 2 - 100 + (200 - 80) / 2,
+                    width: 1000,
+                    height: 100,
+                    textAlign: 'center',
+                    borderWidth: 0,
+                    textContents: [
+                    {
+                        content: waterMarkText,
+                        fontSize: parseFloat(waterMarkSize),
+                        color: waterMarkColor,
+                    },
+                    ],
+                    opacity: parseFloat(opacity),
+                    rotation: -60,
+                });
+
+                // (https://www.dynamsoft.com/document-viewer/docs/api/class/annotation/rectangle.html#flattened)
+                marks.flattened = true;
+                annots.push(marks);
+            });
+        });
+    }
+
+    function waterMarkSizeChanged(e) {
+        const size =  parseFloat(e.target.value);
+        annots.forEach((annot) => {
+            const options = annot.getOptions();
+            // (https://www.dynamsoft.com/document-viewer/docs/api/class/annotation/rectangle.html#updateoptions)
+            annot.updateOptions({
+                textContents:[
+                    {
+                        ...options.textContents[0],
+                        fontSize: size,
+                    }
+                ]
+            })
+        })
+
+        waterMarkSize = size;
+    }
+
+    function waterMarkColorChanged(e) {
+        const color = e.target.value;
+        annots.forEach((annot) => {
+            const options = annot.getOptions();
+            annot.updateOptions({
+                textContents:[
+                    {
+                        ...options.textContents[0],
+                        color: color,
+                    }
+                ]
+            })
+        })
+
+        waterMarkColor = color;
+    }
+</script>
+</html>

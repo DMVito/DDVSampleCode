@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DDV SampleCode - DocumentEncryption</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dynamsoft-document-viewer@2.1.0/dist/ddv.css">
+</head>
+
+<style>
+    #container {
+        width: 1200px;
+        height: 800px;
+    }
+
+    #documentList {
+        width: 1200px;
+    }
+
+    button {
+        height: 28px;
+        font-size: 14px;
+        margin-right: 4px;
+    }
+
+    .password-file-load {
+        position: absolute;
+        z-index: 11;
+        background: white;
+        width: 400px;
+        height: auto;
+        padding: 10px 10px;
+        box-sizing: border-box;
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.161);
+        border-radius: 5px;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .password-file-load-header {
+        display: flex;
+        height: 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid rgba(60, 60, 60, 0.12);
+        font-family: Oswald-Regular;
+        color: #3d434e;
+    }
+
+    .password-container {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        box-sizing: border-box;
+        border-bottom: 1px solid rgba(60, 60, 60, 0.12);
+        padding: 15px 0px;
+    }
+
+    input[type='password'] {
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid #3d434e;
+        outline: none;
+        height: 28px;
+        margin-top: 15px;
+    }
+
+    .nav-common-button {
+        width: 80px;
+        height: 30px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #fe8e14;
+        cursor: pointer;
+        margin-top: 8px;
+        font-size: 16px;
+        border-radius: 4px;
+        border: 1px solid #fe8e14;
+        user-select: none;
+    }
+    
+    .error-mask {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: #0000005e;
+        z-index: 9;
+        top: 0px;
+        left: 0px;
+    }
+</style>
+
+<body>
+    <div style="margin: 10px 0px;">
+        <div style="margin: 10px 0px;">
+            <div style="display: flex; align-items: center;">
+                <span>Enter a password to protect the document:</span>
+                <input id="pdfPassword"  style="margin-left: 8px;" type="text" >
+            </div>
+            <button onclick="saveProtectedFile()" style="margin-top: 8px;">Download Protected Document</button>
+            <div style="margin-top: 8px;">
+                <span>Load your protected document:</span>
+                <input 
+                    onchange="loadSource(event)"
+                    type="file"
+                    accept="image/png,image/jpeg,image/bmp,application/pdf"
+                    multiple="false"
+                >
+            </div>
+        </div>
+    </div>  
+    <div id="container"></div>
+
+    <div style="display: none;" id="mask" class="error-mask"></div>
+    <div style="display: none;" id="passwordLoader" class="password-file-load">
+        <div class="password-file-load-header">
+            <span>Password required</span>
+            <i onclick="hidePasswordLoader()" class="ddv-button ddv-button-close"></i>
+        </div>
+        <div class="password-container">
+          <span style="font-size: 12px">The document has been encrypted. Please enter your password.</span>
+    
+          <form style="width: 100%">
+            <input autocomplete="" id="unlockPassword" type="password" />
+          </form>
+          <span id="passwordErrorInfo" style="display: none; font-size: 12px; color: red; margin: 4px"
+            >The password is incorrect. </span>
+        </div>
+        <div style="display: flex; justify-content: flex-end">
+          <div onclick="reloadFile()" class="nav-common-button">Submit</div>
+    </div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/dynamsoft-document-viewer@2.1.0/dist/ddv.js"></script>
+<script>
+    const DDV = Dynamsoft.DDV;
+    let editViewer;
+    
+    // Writing style of 'Top-level await' to be compatible with older versions of browsers
+    (async () => {
+        DDV.Core.engineResourcePath =
+        'https://cdn.jsdelivr.net/npm/dynamsoft-document-viewer@2.1.0/dist/engine/';
+        DDV.Core.license = "";
+        Dynamsoft.DDV.Core.loadWasm();
+
+        // Initialize DDV
+        await Dynamsoft.DDV.Core.init();
+        
+        // Create an edit viewer
+        editViewer = new Dynamsoft.DDV.EditViewer({
+            container: "container",
+            uiConfig: DDV.getDefaultUiConfig('editViewer', {
+                includeAnnotationSet: true,
+            }),
+        });
+
+        const doc = DDV.documentManager.createDocument();
+        editViewer.openDocument(doc);
+    })();
+
+    // (https://www.dynamsoft.com/document-viewer/docs/api/interface/idocument/index.html#savetopdf)
+    async function saveProtectedFile() {
+        if(!editViewer.currentDocument?.pages?.length) return;
+
+        // (https://www.dynamsoft.com/document-viewer/docs/api/interface/idocument/savepdfsettings.html)
+        const settings = {
+            password: document.getElementById("pdfPassword").value
+        };
+        const blob = await editViewer.currentDocument.saveToPdf(settings);
+        downLoadBlob(blob, 'ddv-sample.pdf')
+    }
+
+    // Customize input interactions for encrypted files
+    async function loadSource(e) {
+        const { files } = e.target;
+        const len = files.length;
+
+        for (let i = 0; i < len; i++) {
+            const blob = new Blob([files[i]], {
+                type: files[i].type,
+            });
+
+            await editViewer.currentDocument.loadSource({
+                fileData: blob,
+                renderOptions: {
+                    renderAnnotations: DDV.EnumAnnotationRenderMode.LOAD_ANNOTATIONS,
+                },
+            }).catch(async (err) => {
+                if(err?.cause?.code === -80202) {
+                    await showPasswordLoader(blob)
+                }
+            })
+        }
+
+        e.target.value = null;
+        e.target.files = null;
+    }
+
+    const passwordLoader = document.getElementById('passwordLoader');
+    const passwordErrorInfo = document.getElementById('passwordErrorInfo');
+    const unlockPassword = document.getElementById('unlockPassword');
+    const mask = document.getElementById('mask');
+    let currentLoadFile;
+    let fileLoadResolve;
+
+    function showPasswordLoader(blob) {
+        currentLoadFile = blob;
+        mask.style.display = '';
+        passwordErrorInfo.style.display = 'none';
+        passwordLoader.style.display = '';
+
+
+        return new Promise(
+            resolve => fileLoadResolve = resolve
+        );
+    }
+
+    function reloadFile() {
+        if(!currentLoadFile) return;
+
+        editViewer.currentDocument.loadSource({
+            fileData:currentLoadFile,
+            password:unlockPassword.value,
+            renderOptions: {
+                renderAnnotations: DDV.EnumAnnotationRenderMode.LOAD_ANNOTATIONS,
+            },
+        }).then(() => {
+          fileLoadResolve();
+          hidePasswordLoader();
+          fileLoadResolve = null;
+        }).catch(() => {
+            passwordErrorInfo.style.display = '';
+        })
+    }
+
+    function hidePasswordLoader() {
+        currentLoadFile = null;
+        unlockPassword.value = "";
+        mask.style.display = 'none';
+        passwordLoader.style.display = 'none';
+        
+
+        if(fileLoadResolve) {
+            fileLoadResolve();
+            fileLoadResolve = null;
+        }
+    }
+
+    function downLoadBlob(blob, filename) {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    }
+</script>
+</html>
